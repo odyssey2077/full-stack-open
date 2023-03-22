@@ -1,56 +1,69 @@
-import { useState } from 'react'
-
-const Button = (props) => (
-  <button onClick={props.handleClick}>
-    {props.text}
-  </button>
-)
-
-const StatisticLine = ({text, value}) => (
-  <tr>
-    <td>{text}</td>
-    <td>{value}</td>
-  </tr>
-)
-const Statistics = ({good, neutral, bad}) => {
-  if (good + neutral + bad > 0) {
-    return (
-    <div>
-      <table>
-        <tbody>
-          <StatisticLine text="good" value ={good} />
-          <StatisticLine text="neutral" value ={neutral} />
-          <StatisticLine text="bad" value ={bad} />
-          <StatisticLine text="all" value ={good + neutral + bad} />
-          <StatisticLine text="average" value ={(good - bad) / (good + neutral + bad)} />
-          <StatisticLine text="positive" value ={good / (good + neutral + bad)} />    
-        </tbody>
-      </table>
-    </div>
-    )
-  } else {
-    return (
-      <div>
-        <p>No feedback given</p>
-      </div>
-    )
-  }
-}
+import { useState, useEffect } from 'react'
+import personsService from './services/persons'
+import axios from 'axios'
 
 const App = () => {
-  // save clicks of each button to its own state
-  const [good, setGood] = useState(0)
-  const [neutral, setNeutral] = useState(0)
-  const [bad, setBad] = useState(0)
+  const [persons, setPersons] = useState([]) 
+  const [newName, setNewName] = useState('')
+  const [newFilter, setNewFilter] = useState('')
+  const [newNumber, setNewNumber] = useState('')
+
+  useEffect(() => {
+    console.log('effect')
+    personsService.getAll()
+      .then(data => {
+        setPersons(data)
+      })
+  }, [])  
+
+
+  const handleNameChange = (event) => {
+    setNewName(event.target.value)
+  }
+
+  const handleFilterChange = (event) => {
+    setNewFilter(event.target.value)
+  }
+
+  const handleNumberChange = (event) => {
+    setNewNumber(event.target.value)
+  }
+
+  const addName = (event) => {
+    event.preventDefault()
+    let existingNames = persons.map(person => person['name'])
+    if (existingNames.includes(newName)) {
+      window.alert(`${newName} is already added to phonebook`)
+    } else {
+      const newPerson = {name: newName, number: newNumber}
+      personsService.create(newPerson)
+        .then(data => {
+          setPersons(persons.concat(data))
+          setNewName('')
+        })
+    }
+  }
 
   return (
     <div>
-      <h1>give feedback</h1>
-      <h1>statistics</h1>
-      <Button handleClick={() => setGood(good+1)} text="good" />
-      <Button handleClick={() => setNeutral(neutral+1)} text="neutral" />
-      <Button handleClick={() => setBad(bad+1)} text="bad" />
-      <Statistics good={good} neutral={neutral} bad={bad} />
+      <h2>Phonebook</h2>
+      <input value={newFilter} onChange={handleFilterChange}/>
+      <h2>Add a new number</h2>
+      <form onSubmit={addName}>
+        <div>
+          name: <input value={newName} onChange={handleNameChange}/>
+        </div>
+        <div>
+          number: <input value={newNumber} onChange={handleNumberChange}/>
+        </div>
+        <div>
+          <button type="submit">add</button>
+        </div>
+      </form>
+      <h2>Numbers</h2>
+      <ul>
+        {persons.filter(person => person.name.toLowerCase().startsWith(newFilter.toLowerCase())).map(person => <li key={person['name']}>{person['name']} {person['number']}</li>)}
+      </ul>
     </div>
   )
 }
