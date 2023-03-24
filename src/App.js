@@ -4,7 +4,7 @@ import axios from 'axios'
 
 const Button = (props) => {
     const handleDelete = () => {
-      if (window.confirm(`delete ${props.person['name']}?`)) {
+      if (window.confirm(`delete ${props.person}?`)) {
         personsService.remove(props.person['id'])
         .then(data => {
           props.setPersons(props.persons.filter(person => person['id'] !== props.person['id']))
