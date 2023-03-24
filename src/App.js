@@ -2,6 +2,31 @@ import { useState, useEffect } from 'react'
 import personsService from './services/persons'
 import axios from 'axios'
 
+const Button = (props) => {
+    const handleDelete = () => {
+      if (window.confirm(`delete ${props.person['name']}?`)) {
+        personsService.remove(props.person['id'])
+        .then(data => {
+          props.setPersons(props.persons.filter(person => person['id'] !== props.person['id']))
+        })
+      }
+    }  
+    return (
+      <button onClick={handleDelete}>
+        {props.text}
+      </button>
+    )
+  }
+
+const Person = (props) => {
+  return (
+    <div>
+    <li>{props.person['name']} {props.person['number']}</li>
+    <Button text="delete" setPersons={props.setPersons} person={props.person} persons={props.persons} />
+    </div>
+  )
+}
+
 const App = () => {
   const [persons, setPersons] = useState([]) 
   const [newName, setNewName] = useState('')
@@ -62,7 +87,11 @@ const App = () => {
       </form>
       <h2>Numbers</h2>
       <ul>
-        {persons.filter(person => person.name.toLowerCase().startsWith(newFilter.toLowerCase())).map(person => <li key={person['name']}>{person['name']} {person['number']}</li>)}
+        {persons.filter(person => person.name.toLowerCase().startsWith(newFilter.toLowerCase()))
+          .map(person =>
+           <Person key={person['name']} person={person} setPersons={setPersons} persons={persons} />
+          )
+        }
       </ul>
     </div>
   )
